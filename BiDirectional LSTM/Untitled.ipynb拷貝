@@ -10,6 +10,9 @@
     }
    },
    "outputs": [],
+   "source": [
+    "from bert_serving.client import BertClient"
+   ]
   },
   {
    "cell_type": "markdown",
