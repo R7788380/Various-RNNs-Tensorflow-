@@ -1,0 +1,562 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-09-05T06:50:55.821569Z",
+     "start_time": "2019-09-05T06:50:55.811851Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "from bert_serving.client import BertClient"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-10-26T08:44:30.934155Z",
+     "start_time": "2019-10-26T08:44:30.925566Z"
+    }
+   },
+   "source": [
+    "<video controls src=\"\" />"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-09-05T06:50:57.843920Z",
+     "start_time": "2019-09-05T06:50:57.724017Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "bc = BertClient()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-09-05T06:51:09.531446Z",
+     "start_time": "2019-09-05T06:51:09.334287Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "sentence = ['康文瑋大帥哥']\n",
+    "embedding = bc.encode(sentence)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-09-05T06:51:15.615806Z",
+     "start_time": "2019-09-05T06:51:15.606918Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(1, 25, 768)"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "embedding.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-08-30T08:07:09.124067Z",
+     "start_time": "2019-08-30T08:07:09.094510Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[[ 0.32019532, -0.33101967,  0.6860331 , ...,  1.1554619 ,\n",
+       "          0.53871316,  0.76004374],\n",
+       "        [-0.79138064, -0.7687588 ,  1.1043721 , ...,  1.3877853 ,\n",
+       "          0.840821  , -0.36426026],\n",
+       "        [ 0.43112665, -0.9739576 , -0.22886856, ...,  0.7423426 ,\n",
+       "          0.2424151 , -0.93084997],\n",
+       "        ...,\n",
+       "        [ 0.        , -0.        ,  0.        , ...,  0.        ,\n",
+       "         -0.        ,  0.        ],\n",
+       "        [ 0.        , -0.        ,  0.        , ...,  0.        ,\n",
+       "         -0.        ,  0.        ],\n",
+       "        [-0.        , -0.        ,  0.        , ...,  0.        ,\n",
+       "          0.        ,  0.        ]]], dtype=float32)"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "embedding[0]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 84,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-10-19T15:19:53.843324Z",
+     "start_time": "2019-10-19T15:19:53.837912Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "from flair.embeddings import BertEmbeddings, BertTokenizer, BertModel\n",
+    "from flair.data import Sentence\n",
+    "import torch"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 61,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-10-19T15:09:10.821326Z",
+     "start_time": "2019-10-19T15:09:05.488471Z"
+    },
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "embedding = BertEmbeddings(bert_model_or_path='bert-base-uncased',pooling_operation='first')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 62,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-10-19T15:09:13.205031Z",
+     "start_time": "2019-10-19T15:09:12.190060Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 90,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-10-19T15:21:25.551871Z",
+     "start_time": "2019-10-19T15:21:25.516034Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "tensor([[1996, 5568, 2003, 2665, 1012]])"
+      ]
+     },
+     "execution_count": 90,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "tokens = tokenizer.encode('The grass is green .')\n",
+    "tokens = torch.tensor([tokens])\n",
+    "tokens"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 91,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-10-19T15:21:31.822673Z",
+     "start_time": "2019-10-19T15:21:27.706173Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-11-02T02:58:48.559588Z",
+     "start_time": "2019-11-02T02:58:48.459027Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "import tensorflow as tf\n",
+    "import tensorflow_datasets as tfds\n",
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "\n",
+    "from transformers import *"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2019-11-02T02:58:52.387969Z",
+     "start_time": "2019-11-02T02:58:49.879545Z"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "I1102 10:58:49.984964 4696034624 modeling_bert.py:66] Converting TensorFlow checkpoint from /Users/hsj/Desktop/publish/bert_model.ckpt\n",
+      "I1102 10:58:49.987121 4696034624 modeling_bert.py:72] Loading TF weight bert/embeddings/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:49.990483 4696034624 modeling_bert.py:72] Loading TF weight bert/embeddings/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:49.993935 4696034624 modeling_bert.py:72] Loading TF weight bert/embeddings/position_embeddings with shape [512, 768]\n",
+      "I1102 10:58:50.000332 4696034624 modeling_bert.py:72] Loading TF weight bert/embeddings/token_type_embeddings with shape [2, 768]\n",
+      "I1102 10:58:50.005678 4696034624 modeling_bert.py:72] Loading TF weight bert/embeddings/word_embeddings with shape [21128, 768]\n",
+      "I1102 10:58:50.092798 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/attention/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.095845 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.101775 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.107028 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.115184 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:50.118254 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/attention/self/key/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.122997 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:50.128603 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.138170 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:50.145603 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.152835 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:50.166256 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:50.193855 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.200855 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.214586 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.219213 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_0/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:50.237796 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/attention/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.244081 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.251521 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.254987 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.266556 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:50.273032 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/attention/self/key/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.281536 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:50.285609 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.293426 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:50.299621 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.312541 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:50.318548 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:50.334210 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.343278 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.348636 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.353492 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_1/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:50.376888 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/attention/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.380799 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.389260 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.398429 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.405836 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:50.412442 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/attention/self/key/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.420406 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:50.426222 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.443420 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:50.454629 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.475831 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:50.478879 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:50.499132 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.502114 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.508624 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.513653 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_10/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:50.535465 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/attention/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.541829 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.546162 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.555691 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.567281 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:50.571586 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/attention/self/key/kernel with shape [768, 768]\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "I1102 10:58:50.587574 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:50.597579 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.604952 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:50.615673 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.621764 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:50.628504 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:50.644229 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.647545 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.653981 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.659432 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_11/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:50.678042 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/attention/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.680719 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.684957 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.691849 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.702672 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:50.706820 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/attention/self/key/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.718003 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:50.721039 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.734403 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:50.738933 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.748332 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:50.756185 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:50.778839 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.781530 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.797662 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.803390 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_2/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:50.822077 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/attention/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.825810 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.830395 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.833060 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.845052 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:50.849037 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/attention/self/key/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.854502 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:50.875848 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.890771 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:50.894495 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.908762 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:50.914726 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:50.937213 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.944513 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.947371 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.954323 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_3/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:50.976344 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/attention/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:50.980096 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:50.983999 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:50.991622 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:50.999542 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:51.012910 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/attention/self/key/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.017848 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:51.030930 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.034961 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:51.043485 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.049935 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:51.061850 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:51.081131 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:51.083393 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.092593 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/output/dense/bias with shape [768]\n",
+      "I1102 10:58:51.096635 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_4/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:51.113754 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/attention/output/LayerNorm/beta with shape [768]\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "I1102 10:58:51.117775 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.125909 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:51.131808 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.140842 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:51.145876 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/attention/self/key/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.153805 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:51.160337 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.178184 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:51.181788 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.188175 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:51.194643 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:51.207773 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:51.212851 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.215157 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/output/dense/bias with shape [768]\n",
+      "I1102 10:58:51.218690 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_5/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:51.234928 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/attention/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:51.240486 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.246089 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:51.249418 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.257598 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:51.264544 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/attention/self/key/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.268730 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:51.279488 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.285562 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:51.293915 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.298469 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:51.305487 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:51.316986 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:51.326277 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.332303 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/output/dense/bias with shape [768]\n",
+      "I1102 10:58:51.335537 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_6/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:51.350538 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/attention/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:51.365465 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.368205 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:51.378797 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.384186 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:51.393220 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/attention/self/key/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.399299 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:51.411741 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.420052 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:51.424986 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.432519 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:51.436077 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:51.450266 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:51.458400 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.462913 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/output/dense/bias with shape [768]\n",
+      "I1102 10:58:51.465135 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_7/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:51.478705 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/attention/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:51.482954 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.493263 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:51.496410 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.500570 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:51.505626 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/attention/self/key/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.512122 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:51.517818 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.527418 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:51.536911 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.545480 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:51.550441 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:51.568653 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/output/LayerNorm/beta with shape [768]\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "I1102 10:58:51.572428 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.578758 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/output/dense/bias with shape [768]\n",
+      "I1102 10:58:51.581595 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_8/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:51.592945 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/attention/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:51.596708 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/attention/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.599581 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/attention/output/dense/bias with shape [768]\n",
+      "I1102 10:58:51.601747 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/attention/output/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.609431 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/attention/self/key/bias with shape [768]\n",
+      "I1102 10:58:51.612733 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/attention/self/key/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.616759 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/attention/self/query/bias with shape [768]\n",
+      "I1102 10:58:51.619374 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/attention/self/query/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.633582 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/attention/self/value/bias with shape [768]\n",
+      "I1102 10:58:51.636741 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/attention/self/value/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.652992 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/intermediate/dense/bias with shape [3072]\n",
+      "I1102 10:58:51.655887 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/intermediate/dense/kernel with shape [768, 3072]\n",
+      "I1102 10:58:51.670970 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/output/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:51.684283 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/output/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.692137 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/output/dense/bias with shape [768]\n",
+      "I1102 10:58:51.696904 4696034624 modeling_bert.py:72] Loading TF weight bert/encoder/layer_9/output/dense/kernel with shape [3072, 768]\n",
+      "I1102 10:58:51.710033 4696034624 modeling_bert.py:72] Loading TF weight bert/pooler/dense/bias with shape [768]\n",
+      "I1102 10:58:51.713535 4696034624 modeling_bert.py:72] Loading TF weight bert/pooler/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.718580 4696034624 modeling_bert.py:72] Loading TF weight cls/predictions/output_bias with shape [21128]\n",
+      "I1102 10:58:51.730665 4696034624 modeling_bert.py:72] Loading TF weight cls/predictions/transform/LayerNorm/beta with shape [768]\n",
+      "I1102 10:58:51.736713 4696034624 modeling_bert.py:72] Loading TF weight cls/predictions/transform/LayerNorm/gamma with shape [768]\n",
+      "I1102 10:58:51.746831 4696034624 modeling_bert.py:72] Loading TF weight cls/predictions/transform/dense/bias with shape [768]\n",
+      "I1102 10:58:51.749646 4696034624 modeling_bert.py:72] Loading TF weight cls/predictions/transform/dense/kernel with shape [768, 768]\n",
+      "I1102 10:58:51.763673 4696034624 modeling_bert.py:72] Loading TF weight cls/seq_relationship/output_bias with shape [2]\n",
+      "I1102 10:58:51.767233 4696034624 modeling_bert.py:72] Loading TF weight cls/seq_relationship/output_weights with shape [2, 768]\n",
+      "I1102 10:58:51.778357 4696034624 modeling_bert.py:72] Loading TF weight global_step with shape []\n",
+      "I1102 10:58:51.780870 4696034624 modeling_bert.py:102] Skipping bert/embeddings/LayerNorm/beta\n",
+      "I1102 10:58:51.781852 4696034624 modeling_bert.py:116] Initialize PyTorch weight ['bert', 'embeddings', 'LayerNorm', 'beta']\n"
+     ]
+    },
+    {
+     "ename": "AttributeError",
+     "evalue": "'LayerNormalization' object has no attribute 'weight'",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[0;31mAttributeError\u001b[0m                            Traceback (most recent call last)",
+      "\u001b[0;32m<ipython-input-4-1ecff8e91bba>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0mconfig\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mBertConfig\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mfrom_json_file\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m'publish/bert_config.json'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0mmodel\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mTFBertModel\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mconfig\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mconfig\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 3\u001b[0;31m \u001b[0mmodel\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mload_tf_weights_in_bert\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mmodel\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mmodel\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtf_checkpoint_path\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m'publish/bert_model.ckpt'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mconfig\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mconfig\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m",
+      "\u001b[0;32m/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/transformers/modeling_bert.py\u001b[0m in \u001b[0;36mload_tf_weights_in_bert\u001b[0;34m(model, config, tf_checkpoint_path)\u001b[0m\n\u001b[1;32m     89\u001b[0m                 \u001b[0ml\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0;34m[\u001b[0m\u001b[0mm_name\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     90\u001b[0m             \u001b[0;32mif\u001b[0m \u001b[0ml\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0;36m0\u001b[0m\u001b[0;34m]\u001b[0m \u001b[0;34m==\u001b[0m \u001b[0;34m'kernel'\u001b[0m \u001b[0;32mor\u001b[0m \u001b[0ml\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0;36m0\u001b[0m\u001b[0;34m]\u001b[0m \u001b[0;34m==\u001b[0m \u001b[0;34m'gamma'\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 91\u001b[0;31m                 \u001b[0mpointer\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mgetattr\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mpointer\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m'weight'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     92\u001b[0m \u001b[0;31m#            elif l[0] == 'output_bias' or l[0] == 'beta':\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     93\u001b[0m \u001b[0;31m#                pointer = getattr(pointer, 'bias')\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+      "\u001b[0;31mAttributeError\u001b[0m: 'LayerNormalization' object has no attribute 'weight'"
+     ]
+    }
+   ],
+   "source": [
+    "config = BertConfig.from_json_file('publish/bert_config.json')\n",
+    "model = TFBertModel(config=config)\n",
+    "model = load_tf_weights_in_bert(model=model, tf_checkpoint_path='publish/bert_model.ckpt', config=config)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "hide_input": false,
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "toc": {
+   "base_numbering": 1,
+   "nav_menu": {},
+   "number_sections": true,
+   "sideBar": true,
+   "skip_h1_title": false,
+   "title_cell": "Table of Contents",
+   "title_sidebar": "Contents",
+   "toc_cell": false,
+   "toc_position": {},
+   "toc_section_display": true,
+   "toc_window_display": false
+  },
+  "varInspector": {
+   "cols": {
+    "lenName": 16,
+    "lenType": 16,
+    "lenVar": 40
+   },
+   "kernels_config": {
+    "python": {
+     "delete_cmd_postfix": "",
+     "delete_cmd_prefix": "del ",
+     "library": "var_list.py",
+     "varRefreshCmd": "print(var_dic_list())"
+    },
+    "r": {
+     "delete_cmd_postfix": ") ",
+     "delete_cmd_prefix": "rm(",
+     "library": "var_list.r",
+     "varRefreshCmd": "cat(var_dic_list()) "
+    }
+   },
+   "types_to_exclude": [
+    "module",
+    "function",
+    "builtin_function_or_method",
+    "instance",
+    "_Feature"
+   ],
+   "window_display": false
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
